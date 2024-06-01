@@ -1,0 +1,264 @@
+"id","account_id","alias","title","description","incident_script","recovery_script","config","deleted_at","created_at","updated_at"
+"1","1","no_data","Полное отсутствие данных с объекта/полное отключение","Отсутствие данных, превышающее регламентные сроки","return getTimedData(objects.map(o => o.id), incidentType.config.timeout)","const recoveredObjects = await getRecoveredTimedData(objects.map(o => o.id), incidentType.config.timeout)
+                return incidents.filter(incident => incident.task_id === null && recoveredObjects.map(item => parseInt(item.object_id)).includes(incident.service_object_id))
+",NULL,NULL,"2022-01-23 16:04:19","2022-01-23 16:04:19"
+"2","1","comp_no_data","Отсутствие данных с компонента объекта","Отсутствие данных с отдельного датчика/датчиков",NULL,NULL,NULL,NULL,"2022-01-23 16:05:33","2022-01-23 16:05:33"
+"3","1","incorrect_data","Некорректные данные с компонента или объекта в целом","С объекта приходят некорректные данные",NULL,NULL,NULL,NULL,"2022-01-23 16:05:33","2022-01-23 16:05:33"
+"4","1","dirty_cam","Загрязнение/замерзание/запотевание стекла камеры","Ухудшение качества изображения камеры, связанное с отложениями на стекле",NULL,NULL,NULL,NULL,"2022-01-23 16:05:34","2022-01-23 16:05:34"
+"5","1","defocus","Расфокусировка камеры","Ухудшение качества изображения камеры, связанное с расфокусировкой",NULL,NULL,NULL,NULL,"2022-01-23 16:05:35","2022-01-23 16:05:35"
+"6","1","ptz_failure","Сбой работы PTZ","Нарушение маршрута съемки камеры",NULL,NULL,NULL,NULL,"2022-01-23 16:05:35","2022-01-23 16:05:35"
+"7","1","irregular_data","Нерегулярное поступление данных","Данные поступают с перерывами",NULL,NULL,NULL,NULL,"2022-01-23 16:05:35","2022-01-23 16:05:35"
+"8","1","damage","Механическое повреждение","Повреждение объекта, связанное с внешним воздействием",NULL,NULL,NULL,NULL,"2022-01-23 16:05:36","2022-01-23 16:05:36"
+"9","1","high_traffic_consupmtion","Повышенное потребление трафика","Объем трафика значительно превосходящий среднестатистический для данного типа объектов",NULL,NULL,NULL,NULL,"2022-01-23 16:05:36","2022-01-23 16:05:36"
+"10","1","vms_error","Проблема с выводом/отображением информации на ТПИ/ЗПИ","Информация на ТПИ/ЗПИ либо не выводится, либо выводится некорректно",NULL,NULL,NULL,NULL,"2022-01-23 16:05:36","2022-01-23 16:05:36"
+"11","1","solar_panel_defect","Нулевые данные","Отсутствие тока и напряжения заряда солнечной панели","const minH = 9
+const maxH = 13
+const incidents = []
+for (const obj of objects) {
+  const data = await getMaxData(obj.id)
+  if (data.length) {
+     const _data = data[0].data.reduce((carry, item) => {
+      carry[Object.keys(item)[0]] = parseFloat(Object.values(item)[0])
+      return carry
+    }, {})
+
+    const dt = moment(data[0].dt)
+    if (
+      dt.hour() >= minH && dt.hour() <= maxH
+      && _data.saVolt === 0
+      && _data.saCurr === 0
+    ) {
+      incidents.push({
+        object_id: obj.id,
+        dt: data[0].dt
+      })
+    }
+  }
+}
+return incidents","return []",NULL,NULL,"2022-01-23 16:05:37","2023-08-04 04:50:49"
+"12","1","battery_defect","Неисправность АКБ","Отсутствие напряжения на батарее в ночное время","const minH = 23
+const maxH = 4
+const incidents = []
+for (const obj of objects) {
+  const data = await getMaxData(obj.id)
+  if (data.length) {
+    const dt = moment(data[0].dt)
+    const _data = data[0].data.reduce((carry, item) => {
+      carry[Object.keys(item)[0]] = parseFloat(Object.values(item)[0])
+      return carry
+    }, {})
+    if (
+      (dt.hour() >= minH || dt.hour() <= maxH)
+      && _data.battVolt === 0
+    ) {
+      incidents.push({
+        object_id: obj.id,
+        dt: data[0].dt
+      })
+    }
+  }
+}
+return incidents","return []",NULL,NULL,"2022-01-23 16:05:37","2022-01-23 16:05:37"
+"13","1","load_defect","Неисправность нагрузки (полная или частичная)","Напряжение на нагрузке ниже номинального","const maxH = 4
+const minH = 23
+const incidents = []
+for (const obj of objects) {
+  const data = await getMaxData(obj.id)
+  if (data.length) {
+    const dt = moment(data[0].dt)
+
+    const _data = data[0].data.reduce((carry, item) => {
+      carry[Object.keys(item)[0]] = parseFloat(Object.values(item)[0])
+      return carry
+    }, {})
+    if (
+      (dt.hour() >= minH || dt.hour() <= maxH)
+      && _data.loadVolt < 0.8 * _data.battVolt
+    ) {
+      incidents.push({
+        object_id: obj.id,
+        dt: data[0].dt
+      })
+    }
+  }
+}
+return incidents","return []",NULL,NULL,"2022-01-23 16:05:37","2022-01-23 16:05:37"
+"14","1","charger_failure","Неисправность модуля зарядки","Нет связи с модулем зарядки",NULL,NULL,NULL,NULL,"2022-01-23 16:05:37","2022-01-23 16:05:37"
+"15","1","charger_contact_defect","Отсутствие контакта с модулем зарядки","Отсутствие контакта с модулем зарядки",NULL,NULL,NULL,NULL,"2022-01-23 16:05:37","2022-01-23 16:05:37"
+"16","1","nestabilnaya_rabota","Нестабильная работа","Нестабильная работа",NULL,NULL,NULL,NULL,"2022-01-23 16:05:38","2022-01-23 16:05:38"
+"17","1","samoproizvolnye_perehod_v_zheltyy_migayuschiy","Самопроизвольные переход в жёлтый мигающий","Самопроизвольные переход в жёлтый мигающий",NULL,NULL,NULL,NULL,"2022-01-23 16:05:38","2022-01-23 16:05:38"
+"18","1","otklyuchenie_svetofora","Отключение светофора","Отключение светофора",NULL,NULL,NULL,NULL,"2022-01-23 16:05:38","2022-01-23 16:05:38"
+"19","1","ne_rabotayut_linzy","Не работают линзы","Не работают линзы",NULL,NULL,NULL,NULL,"2022-01-23 16:05:39","2022-01-23 16:05:39"
+"20","1","mehanicheskoe_povrezhdenie","Механическое повреждение","Механическое повреждение",NULL,NULL,NULL,NULL,"2022-01-23 16:05:39","2022-01-23 16:05:39"
+"21","1","neispravnost_modulya_monitoringa","Неисправность модуля мониторинга","Неисправность модуля мониторинга",NULL,NULL,NULL,NULL,"2022-01-23 16:05:40","2022-01-23 16:05:40"
+"22","2","no_data","Полное отсутствие данных с объекта/полное отключение","Отсутствие данных, превышающее регламентные сроки","return getTimedData(objects.map(o => o.id), incidentType.config.timeout)","const recoveredObjects = await getRecoveredTimedData(objects.map(o => o.id), incidentType.config.timeout)
+                return incidents.filter(incident => incident.task_id === null && recoveredObjects.map(item => parseInt(item.object_id)).includes(incident.service_object_id))",NULL,NULL,"2022-01-30 11:38:40","2022-01-30 11:38:40"
+"23","2","comp_no_data","Отсутствие данных с компонента объекта","Отсутствие данных с отдельного датчика/датчиков",NULL,NULL,NULL,NULL,"2022-01-30 11:39:07","2022-01-30 11:39:07"
+"24","2","incorrect_data","Некорректные данные с компонента или объекта в целом","С объекта приходят некорректные данные",NULL,NULL,NULL,NULL,"2022-01-30 11:39:08","2022-01-30 11:39:08"
+"25","2","dirty_cam","Загрязнение/замерзание/запотевание стекла камеры","Ухудшение качества изображения камеры, связанное с отложениями на стекле",NULL,NULL,NULL,"2023-03-03 07:31:53","2022-01-30 11:39:08","2023-03-03 07:31:53"
+"26","2","defocus","Расфокусировка камеры","Ухудшение качества изображения камеры, связанное с расфокусировкой",NULL,NULL,NULL,"2023-03-03 07:33:36","2022-01-30 11:39:08","2023-03-03 07:33:36"
+"27","2","irregular_data","Нерегулярное поступление данных","Данные поступают с перерывами",NULL,NULL,NULL,NULL,"2022-01-30 11:39:08","2022-01-30 11:39:08"
+"28","2","damage","Механическое повреждение","Повреждение объекта, связанное с внешним воздействием",NULL,NULL,NULL,NULL,"2022-01-30 11:39:08","2022-01-30 11:39:08"
+"29","2","high_traffic_consupmtion","Повышенное потребление трафика","Объем трафика значительно превосходящий среднестатистический для данного типа объектов",NULL,NULL,NULL,NULL,"2022-01-30 11:39:08","2022-01-30 11:39:08"
+"30","2","vms_error","Проблема с выводом/отображением информации на ТПИ/ЗПИ","Информация на ТПИ/ЗПИ либо не выводится, либо выводится некорректно",NULL,NULL,NULL,NULL,"2022-01-30 11:39:08","2022-01-30 11:39:08"
+"31","3","no_data","Полное отсутствие данных с объекта/полное отключение","Отсутствие данных, превышающее регламентные сроки","return getTimedData(objects.map(o => o.id), incidentType.config.timeout)","const recoveredObjects = await getRecoveredTimedData(objects.map(o => o.id), incidentType.config.timeout)
+                return incidents.filter(incident => incident.task_id === null && recoveredObjects.map(item => parseInt(item.object_id)).includes(incident.service_object_id))",NULL,NULL,"2022-01-23 16:04:19","2022-01-23 16:04:19"
+"32","3","comp_no_data","Отсутствие данных с компонента объекта","Отсутствие данных с отдельного датчика/датчиков",NULL,NULL,NULL,NULL,"2022-01-23 16:05:33","2022-01-23 16:05:33"
+"33","3","incorrect_data","Некорректные данные с компонента или объекта в целом","С объекта приходят некорректные данные",NULL,NULL,NULL,NULL,"2022-01-23 16:05:33","2022-01-23 16:05:33"
+"34","3","dirty_cam","Загрязнение/замерзание/запотевание стекла камеры","Ухудшение качества изображения камеры, связанное с отложениями на стекле",NULL,NULL,NULL,NULL,"2022-01-23 16:05:34","2022-01-23 16:05:34"
+"35","1","problema_v_rabote_kontrolno_izmeritelnoy_apparatury","Проблема в работе контрольно-измерительной аппаратуры","Сбой настроек/калибровки",NULL,NULL,NULL,NULL,"2022-04-29 10:31:04","2022-04-29 10:31:04"
+"36","1","ne_rabotaet_knopka_vyzova_peshehodnogo_perehoda","Не работает кнопка вызова пешеходного перехода",NULL,NULL,NULL,NULL,NULL,"2022-06-29 08:36:15","2022-06-29 08:36:15"
+"37","2","reklamacionnyy_incident","Рекламационный инцидент","Вид инцидента для оформления рекламаций",NULL,NULL,NULL,"2023-04-12 05:07:19","2022-08-29 03:42:32","2023-04-12 05:07:19"
+"38","1","incorrect_mode_t7","Некорректный режим работы Т7","Некорректный режим работы Т7","const incidents = []
+for (const obj of objects) {
+ const data = await getData(obj.id)
+ if (data.length && !data[0].data[0].uAc ) {
+   const dt = moment(data[0].dt)
+   if (
+     parseInt(data[0].data[0].runMode) !== 1
+     && parseInt(data[0].data[0].outputMode) !== 11
+   ) {
+     incidents.push({
+       object_id: obj.id,
+       dt: data[0].dt
+     })
+   }
+ }
+}
+return incidents
+","return []",NULL,NULL,"2022-01-23 16:04:19","2022-01-23 16:04:19"
+"39","1","incorrect_mode_aos","Некорректный режим работы АОС","Некорректный режим работы АОС","const incidents = []
+for (const obj of objects) {
+  const data = await getData(obj.id)
+  if (data.length && !data[0].data[0].uAc) {
+    const dt = moment(data[0].dt)
+    if (
+      parseInt(data[0].data[0].runMode) !== 2
+      && parseInt(data[0].data[0].outputMode) !== 21
+    ) {
+      incidents.push({
+        object_id: obj.id,
+        dt: data[0].dt
+      })
+    }
+  }
+}
+return incidents
+","return []",NULL,NULL,"2022-01-23 16:04:19","2022-01-23 16:04:19"
+"40","1","not_activated","Объект не вышел на связь",NULL,NULL,NULL,NULL,NULL,"2023-01-31 11:30:01","2023-01-31 11:30:01"
+"41","3","nekorrektnaya_rabota_v_nochnoe_vremya","Некорректная работа в ночное время",NULL,"const incidents = []
+for (const obj of objects) {
+  const data = await getMaxData(obj.id, 3)
+  if (data.length) {
+    const mbsOn = await mustBeSwitchedOn(data[0].ts, obj.location.coordinates[1], obj.location.coordinates[0])
+    const np1 = parseFloat(obj.props.np1)
+    const np2 = parseFloat(obj.props.np2)
+    const np3 = parseFloat(obj.props.np3)
+    const kt = parseFloat(obj.props.kt)
+
+    const _data = data[0].data.reduce((carry, item) => {
+      carry[Object.keys(item)[0]] = parseFloat(Object.values(item)[0])
+      return carry
+    }, {})
+
+    if (
+      mbsOn && (
+        _data.p1 * kt < 0.1 * np1 ||
+        _data.p2 * kt < 0.1 * np2 ||
+        _data.p3 * kt < 0.1 * np3
+      )
+    ) {
+      incidents.push({
+        object_id: obj.id,
+        dt: data[0].dt
+      })
+    }
+  }
+}
+return incidents",NULL,NULL,NULL,"2023-08-26 04:20:17","2023-08-26 04:20:17"
+"42","3","nekorrektnaya_rabota_v_dnevnoe_vremya","Некорректная работа в дневное время",NULL,"const incidents = []
+for (const obj of objects) {
+  const data = await getMinData(obj.id, 3)
+  if (data.length) {
+    const mbsOff = await mustBeSwitchedOff(data[0].ts, obj.location.coordinates[1], obj.location.coordinates[0])
+    const np1 = parseFloat(obj.props.np1)
+    const np2 = parseFloat(obj.props.np2)
+    const np3 = parseFloat(obj.props.np3)
+    const kt = parseFloat(obj.props.kt)
+
+    const _data = data[0].data.reduce((carry, item) => {
+      carry[Object.keys(item)[0]] = parseFloat(Object.values(item)[0])
+      return carry
+    }, {})
+
+    if (
+      mbsOff && (
+        _data.p1 * kt > 0.1 * np1 ||
+        _data.p2 * kt > 0.1 * np2 ||
+        _data.p3 * kt > 0.1 * np3
+      )
+    ) {
+      incidents.push({
+        object_id: obj.id,
+        dt: data[0].dt
+      })
+    }
+  }
+}
+return incidents",NULL,NULL,NULL,"2023-08-26 04:20:31","2023-08-26 04:20:31"
+"43","3","nesootvetstvie_nominalnoy_moschnosti","Несоответствие номинальной мощности",NULL,"const incidents = []
+for (const obj of objects) {
+  const data = await getMinData(obj.id, 3)
+  if (data.length) {
+    const mbsOn = await mustBeSwitchedOn(data[0].ts, obj.location.coordinates[1], obj.location.coordinates[0])
+    const np1 = parseFloat(obj.props.np1)
+    const np2 = parseFloat(obj.props.np2)
+    const np3 = parseFloat(obj.props.np3)
+    const kt = parseFloat(obj.props.kt)
+
+    const _data = data[0].data.reduce((carry, item) => {
+      carry[Object.keys(item)[0]] = parseFloat(Object.values(item)[0])
+      return carry
+    }, {})
+
+    if (
+      mbsOn && (
+        (_data.p1 * kt < 0.95 * np1 && _data.p1 * kt > 0.1 * np1) ||
+        (_data.p2 * kt < 0.95 * np2 && _data.p2 * kt > 0.1 * np2) ||
+        (_data.p3 * kt < 0.95 * np3 && _data.p3 * kt > 0.1 * np3) ||
+        (_data.p1 * kt > 1.05 * np1 && _data.p1 * kt > 0.1 * np1) ||
+        (_data.p2 * kt > 1.05 * np2 && _data.p2 * kt > 0.1 * np2) ||
+        (_data.p3 * kt > 1.05 * np3 && _data.p3 * kt > 0.1 * np3) 
+      )
+    ) {
+      incidents.push({
+        object_id: obj.id,
+        dt: data[0].dt
+      })
+    }
+  }
+}
+return incidents",NULL,NULL,NULL,"2023-08-26 04:20:49","2023-08-26 04:20:49"
+"44","1","battery_low","Глубокий разряд АКБ","Снижение заряда АКБ ниже критических значений","const minH = 23
+const maxH = 8
+const incidents = []
+for (const obj of objects) {
+  const data = await getMaxData(obj.id)
+  if (data.length) {
+    const dt = moment(data[0].dt)
+    const _data = data[0].data.reduce((carry, item) => {
+      carry[Object.keys(item)[0]] = parseFloat(Object.values(item)[0])
+      return carry
+    }, {})
+    if (
+      (dt.hour() >= minH || dt.hour() <= maxH)
+      && (_data.battVolt <= 11 || (_data.battVolt >= 18 && _data.battVolt <= 22))
+    ) {
+      incidents.push({
+        object_id: obj.id,
+        dt: data[0].dt
+      })
+    }
+  }
+}
+return incidents","return []",NULL,NULL,"2022-01-23 16:05:37","2022-01-23 16:05:37"
